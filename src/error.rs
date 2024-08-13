@@ -42,6 +42,14 @@ pub enum ConfigError {
     BranchPathNotFoundInToml(String),
     #[error("Field {1} for file {0} has the following error: {2}")]
     AssetFileRpm(usize, &'static str, #[source] std::rc::Rc<rpm::Error>),
+    #[error("{0}-th dirs entry has wrong type, expected 'table'")]
+    DirsWrongBaseType(usize),
+    #[error("{0}-th dirs entry is missing {1} field")]
+    DirsMissing(usize, &'static str),
+    #[error("Field {1} of {0}-th dirs must be of type {2}")]
+    DirsWrongType(usize, &'static str, &'static str),
+    #[error("Invalid caps for {0}-th dirs entry: {1}")]
+    DirsInvalidCaps(usize, #[source] std::rc::Rc<rpm::Error>),
 }
 
 #[derive(thiserror::Error, Debug)]

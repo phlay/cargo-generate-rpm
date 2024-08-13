@@ -10,9 +10,11 @@ use crate::build_target::BuildTarget;
 use crate::cli::{Cli, ExtraMetadataSource};
 use crate::error::{ConfigError, Error};
 use file_info::FileInfo;
+use dir_info::DirInfo;
 use metadata::{CompoundMetadataConfig, ExtraMetaData, MetadataConfig, TomlValueHelper};
 
 mod file_info;
+mod dir_info;
 mod metadata;
 
 #[derive(Debug)]
@@ -145,6 +147,7 @@ impl Config {
             (None, None, Some(v)) => v.get()?,
             (None, None, None) => Err(ConfigError::Missing("package.description".to_string()))?,
         };
+        let dirs = DirInfo::new(metadata.get_array("dirs")?.unwrap_or(&[]))?;
         let assets = metadata
             .get_array("assets")?
             .ok_or(ConfigError::Missing("package.assets".to_string()))?;
@@ -163,6 +166,11 @@ impl Config {
         } else {
             builder
         };
+
+        for dir in dirs {
+            let options = dir.generate_rpm_file_options()?;
+            builder = builder.with_dir(options)?;
+        }
 
         let mut expanded_file_paths = vec![];
         for (idx, file) in files.iter().enumerate() {
